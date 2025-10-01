@@ -3,216 +3,374 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ruang Singgah - Manajemen Kost</title>
+  <title>Ruang Singgah</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
-    h1 { text-align: center; }
-    .form-section, .list-section, .finance-section { background: white; padding: 15px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    label { display: block; margin-top: 10px; }
-    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
-    button { margin-top: 10px; padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #007bff; color: white; }
-    .hidden { display: none; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f8ff;
+      color: #002147;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #002147;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    main { padding: 1rem; }
+    form, .data, .report, .login, .filter {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label { display:block; margin-top:0.5rem; }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top:0.2rem;
+      border:1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: #002147;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    table { width:100%; border-collapse: collapse; margin-top:1rem; }
+    th, td { border:1px solid #ccc; padding:0.5rem; text-align:left; }
+    th { background:#e6f0ff; }
   </style>
 </head>
 <body>
-  <h1>?? Ruang Singgah</h1>
+  <header>Ruang Singgah</header>
+  <main>
+    <section class="login">
+      <h3>Login</h3>
+      <label for="role">Pilih Role</label>
+      <select id="role">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+      <label for="password">Password (untuk Admin)</label>
+      <input type="password" id="password" placeholder="Masukkan password jika Admin">
+      <button onclick="login()">Login</button>
+    </section>
 
-  <div class="form-section">
-    <label for="role">Login sebagai:</label>
-    <select id="role">
-      <option value="user">User</option>
-      <option value="admin">Admin</option>
-    </select>
-    <p id="roleInfo">Mode: User</p>
-  </div>
+    <section class="form" style="display:none;">
+      <h3 id="formTitle">Input Booking</h3>
+      <form id="bookingForm">
+        <input type="hidden" id="editIndex">
+        <label>Nama Customer<input type="text" id="customer" required></label>
+        <label>Nama Admin<input type="text" id="adminName" required></label>
+        <label>Nomor Kos<input type="text" id="roomNumber" required></label>
+        <label>Jam Masuk<input type="time" id="checkIn" required></label>
+        <label>Jam Keluar<input type="time" id="checkOut" required></label>
+        <label>Status<select id="status"><option>Booked</option><option>Check-in</option><option>Selesai</option></select></label>
+        <label>Harga<input type="number" id="price" required></label>
+        <button type="submit">Simpan</button>
+      </form>
+    </section>
 
-  <div class="form-section">
-    <h2>Tambah Booking</h2>
-    <label>Nama Customer:</label>
-    <input type="text" id="customerName">
+    <section class="filter" style="display:none;">
+      <h3>Filter & Urutan Booking</h3>
+      <label>Nomor Kos</label>
+      <select id="filterRoom"></select>
 
-    <label>Tanggal Booking:</label>
-    <input type="date" id="bookingDate">
+      <label>Tanggal</label>
+      <input type="date" id="filterDate">
 
-    <label>Jam Masuk:</label>
-    <input type="time" id="checkIn">
+      <label>Urutkan Berdasarkan</label>
+      <select id="sortBy">
+        <option value="date">Tanggal</option>
+        <option value="price">Harga</option>
+        <option value="customer">Nama Customer</option>
+        <option value="time">Waktu (Jam Masuk)</option>
+      </select>
 
-    <label>Jam Keluar:</label>
-    <input type="time" id="checkOut">
+      <button onclick="resetFilter()">Reset</button>
+    </section>
 
-    <label>Nomor Kamar:</label>
-    <input type="text" id="roomNumber">
+    <section class="data" style="display:none;">
+      <h3>Daftar Booking</h3>
+      <table id="bookingTable">
+        <thead>
+          <tr>
+            <th>Nama Customer</th>
+            <th>Nama Admin</th>
+            <th>Nomor Kos</th>
+            <th>Jam Masuk</th>
+            <th>Jam Keluar</th>
+            <th>Status</th>
+            <th>Harga</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <label>Status:</label>
-    <select id="status">
-      <option value="booked">Booked</option>
-      <option value="selesai">Selesai</option>
-    </select>
+    <section class="filter-report" style="display:none;">
+      <h3>Filter & Urutan Laporan Keuangan</h3>
+      <label>Nomor Kos</label>
+      <select id="filterRoomReport"></select>
 
-    <label>Harga:</label>
-    <input type="number" id="price">
+      <label>Tanggal</label>
+      <input type="date" id="filterDateReport">
 
-    <button onclick="addBooking()">Tambah Booking</button>
-  </div>
+      <label>Urutkan Berdasarkan</label>
+      <select id="sortByReport">
+        <option value="date">Tanggal</option>
+        <option value="price">Harga</option>
+        <option value="admin">Nama Admin</option>
+        <option value="time">Waktu (Jam Masuk)</option>
+      </select>
 
-  <div class="list-section">
-    <h2>Daftar Booking</h2>
-    <table id="bookingTable">
-      <thead>
-        <tr>
-          <th>Nama</th>
-          <th>Tanggal</th>
-          <th>Jam Masuk</th>
-          <th>Jam Keluar</th>
-          <th>Kamar</th>
-          <th>Status</th>
-          <th>Harga</th>
-          <th class="adminOnly hidden">Aksi</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <button onclick="resetFilterReport()">Reset</button>
+    </section>
 
-  <div class="finance-section adminOnly hidden">
-    <h2>Laporan Keuangan</h2>
-    <label for="filter">Filter:</label>
-    <select id="filter" onchange="renderBookings()">
-      <option value="all">Semua</option>
-      <option value="day">Harian</option>
-      <option value="week">Mingguan</option>
-      <option value="month">Bulanan</option>
-    </select>
-
-    <label for="sort">Urutkan berdasarkan:</label>
-    <select id="sort" onchange="renderBookings()">
-      <option value="dateDesc">Tanggal Terbaru</option>
-      <option value="dateAsc">Tanggal Terlama</option>
-      <option value="priceDesc">Harga Tertinggi</option>
-      <option value="priceAsc">Harga Terendah</option>
-      <option value="nameAsc">Nama A-Z</option>
-      <option value="nameDesc">Nama Z-A</option>
-    </select>
-
-    <p>Total Pemasukan: Rp <span id="totalIncome">0</span></p>
-  </div>
+    <section class="report" style="display:none;">
+      <h3>Laporan Keuangan</h3>
+      <table id="reportTable">
+        <thead>
+          <tr>
+            <th>Nama Admin</th>
+            <th>Nomor Kos</th>
+            <th>Tanggal</th>
+            <th>Jam Masuk</th>
+            <th>Jam Keluar</th>
+            <th>Harga</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="totalIncome"></p>
+      <p id="adminExpense"></p>
+      <p id="netIncome"></p>
+    </section>
+  </main>
 
   <script>
-    let role = localStorage.getItem("role") || "user";
-    let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    let currentRole = "user";
+    let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
 
-    document.getElementById("role").value = role;
-    document.getElementById("roleInfo").innerText = "Mode: " + role.charAt(0).toUpperCase() + role.slice(1);
-    updateRoleView();
-
-    document.getElementById("role").addEventListener("change", function() {
-      if (this.value === "admin") {
-        let pass = prompt("Masukkan password admin:");
-        if (pass === "kucingoren") {
-          role = "admin";
-          localStorage.setItem("role", "admin");
-        } else {
-          alert("Password salah! Tetap di mode User.");
-          this.value = "user";
-          role = "user";
-          localStorage.setItem("role", "user");
-        }
-      } else {
-        role = "user";
-        localStorage.setItem("role", "user");
+    function login() {
+      const role = document.getElementById('role').value;
+      const password = document.getElementById('password').value;
+      if(role === 'admin' && password !== 'rs') {
+        alert('Password salah untuk Admin!');
+        return;
       }
-      document.getElementById("roleInfo").innerText = "Mode: " + role.charAt(0).toUpperCase() + role.slice(1);
-      updateRoleView();
-      renderBookings();
+      currentRole = role;
+      document.querySelector('.form').style.display = 'block';
+      document.querySelector('.data').style.display = 'block';
+      document.querySelector('.filter').style.display = 'block';
+      if(currentRole === 'admin') {
+        document.querySelector('.report').style.display = 'block';
+        document.querySelector('.filter-report').style.display = 'block';
+      }
+      document.querySelector('.login').style.display = 'none';
+      updateStatuses();
+      renderTable();
+      renderReport();
+      updateFilterOptions();
+    }
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      let editIndex = document.getElementById('editIndex').value;
+      let booking = {
+        customer: document.getElementById('customer').value,
+        adminName: document.getElementById('adminName').value,
+        roomNumber: document.getElementById('roomNumber').value,
+        checkIn: document.getElementById('checkIn').value,
+        checkOut: document.getElementById('checkOut').value,
+        status: document.getElementById('status').value,
+        price: parseInt(document.getElementById('price').value),
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      if(editIndex === ""){
+        bookings.push(booking);
+      } else {
+        if(confirm("Yakin ingin menyimpan perubahan pada booking ini?")){
+          bookings[editIndex] = booking;
+        }
+        document.getElementById('editIndex').value = "";
+        document.getElementById('formTitle').innerText = "Input Booking";
+      }
+
+      localStorage.setItem('bookings', JSON.stringify(bookings));
+      updateStatuses();
+      renderTable();
+      renderReport();
+      updateFilterOptions();
+      this.reset();
     });
 
-    function updateRoleView() {
-      let adminElements = document.querySelectorAll(".adminOnly");
-      adminElements.forEach(el => {
-        if (role === "admin") el.classList.remove("hidden");
-        else el.classList.add("hidden");
-      });
-    }
+    function updateStatuses(){
+      const now = new Date();
+      bookings.forEach(b => {
+        const [hIn, mIn] = b.checkIn.split(":" ).map(Number);
+        const [hOut, mOut] = b.checkOut.split(":" ).map(Number);
+        const start = new Date(); start.setHours(hIn, mIn, 0, 0);
+        const end = new Date(); end.setHours(hOut, mOut, 0, 0);
 
-    function addBooking() {
-      let booking = {
-        name: document.getElementById("customerName").value,
-        date: document.getElementById("bookingDate").value,
-        checkIn: document.getElementById("checkIn").value,
-        checkOut: document.getElementById("checkOut").value,
-        room: document.getElementById("roomNumber").value,
-        status: document.getElementById("status").value,
-        price: parseInt(document.getElementById("price").value) || 0
-      };
-      bookings.push(booking);
-      localStorage.setItem("bookings", JSON.stringify(bookings));
-      renderBookings();
-    }
-
-    function deleteBooking(index) {
-      bookings.splice(index, 1);
-      localStorage.setItem("bookings", JSON.stringify(bookings));
-      renderBookings();
-    }
-
-    function renderBookings() {
-      let tbody = document.querySelector("#bookingTable tbody");
-      tbody.innerHTML = "";
-      let total = 0;
-      let filter = document.getElementById("filter")?.value || "all";
-      let sort = document.getElementById("sort")?.value || "dateDesc";
-
-      let filteredBookings = bookings.filter(b => {
-        if (!b.date) return true;
-        let today = new Date();
-        let bookingDate = new Date(b.date);
-        if (filter === "day") {
-          return bookingDate.toDateString() === today.toDateString();
-        } else if (filter === "week") {
-          let weekAgo = new Date();
-          weekAgo.setDate(today.getDate() - 7);
-          return bookingDate >= weekAgo && bookingDate <= today;
-        } else if (filter === "month") {
-          return bookingDate.getMonth() === today.getMonth() && bookingDate.getFullYear() === today.getFullYear();
+        if(now < start){
+          b.status = "Booked";
+        } else if(now >= start && now <= end){
+          b.status = "Check-in";
+        } else if(now > end){
+          b.status = "Selesai";
         }
-        return true;
       });
+      localStorage.setItem('bookings', JSON.stringify(bookings));
+    }
 
-      filteredBookings.sort((a, b) => {
-        if (sort === "dateDesc") return new Date(b.date) - new Date(a.date);
-        if (sort === "dateAsc") return new Date(a.date) - new Date(b.date);
-        if (sort === "priceDesc") return b.price - a.price;
-        if (sort === "priceAsc") return a.price - b.price;
-        if (sort === "nameAsc") return a.name.localeCompare(b.name);
-        if (sort === "nameDesc") return b.name.localeCompare(a.name);
-        return 0;
-      });
-
-      filteredBookings.forEach((b, i) => {
+    function renderTable(){
+      const tbody = document.querySelector('#bookingTable tbody');
+      tbody.innerHTML = '';
+      let filtered = filterAndSortBookings();
+      filtered.forEach((b, i) => {
+        let actions = "";
+        if(currentRole === 'admin'){
+          actions = `<button onclick="editBooking(${i})">Edit</button> <button onclick="deleteBooking(${i})">Hapus</button>`;
+        }
         let row = `<tr>
-          <td>${b.name}</td>
-          <td>${b.date || '-'}</td>
+          <td>${b.customer}</td>
+          <td>${b.adminName}</td>
+          <td>${b.roomNumber}</td>
           <td>${b.checkIn}</td>
           <td>${b.checkOut}</td>
-          <td>${b.room}</td>
           <td>${b.status}</td>
-          <td>Rp ${b.price}</td>`;
-        if (role === "admin") {
-          row += `<td><button onclick="deleteBooking(${i})">Hapus</button></td>`;
-        }
-        row += `</tr>`;
+          <td>${b.price}</td>
+          <td>${actions}</td>
+        </tr>`;
         tbody.innerHTML += row;
-        total += b.price;
       });
-
-      document.getElementById("totalIncome").innerText = total;
     }
 
-    renderBookings();
+    function editBooking(index){
+      let b = bookings[index];
+      if(confirm("Yakin ingin mengedit bookingan ini?")){
+        document.getElementById('customer').value = b.customer;
+        document.getElementById('adminName').value = b.adminName;
+        document.getElementById('roomNumber').value = b.roomNumber;
+        document.getElementById('checkIn').value = b.checkIn;
+        document.getElementById('checkOut').value = b.checkOut;
+        document.getElementById('status').value = b.status;
+        document.getElementById('price').value = b.price;
+        document.getElementById('editIndex').value = index;
+        document.getElementById('formTitle').innerText = "Edit Booking";
+      }
+    }
+
+    function deleteBooking(index){
+      if(confirm("Yakin ingin menghapus bookingan ini?")){
+        bookings.splice(index,1);
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        renderTable();
+        renderReport();
+        updateFilterOptions();
+      }
+    }
+
+    function filterAndSortBookings(){
+      let filtered = [...bookings];
+      const room = document.getElementById('filterRoom').value;
+      const date = document.getElementById('filterDate').value;
+      const sort = document.getElementById('sortBy').value;
+
+      if(room) filtered = filtered.filter(b => b.roomNumber === room);
+      if(date) filtered = filtered.filter(b => b.date === date);
+
+      if(sort === 'date') filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
+      if(sort === 'price') filtered.sort((a,b) => a.price - b.price);
+      if(sort === 'customer') filtered.sort((a,b) => a.customer.localeCompare(b.customer));
+      if(sort === 'time') filtered.sort((a,b) => a.checkIn.localeCompare(b.checkIn));
+
+      return filtered;
+    }
+
+    function resetFilter(){
+      document.getElementById('filterRoom').value = '';
+      document.getElementById('filterDate').value = '';
+      document.getElementById('sortBy').value = 'date';
+      renderTable();
+    }
+
+    function renderReport(){
+      if(currentRole !== 'admin') return;
+      const tbody = document.querySelector('#reportTable tbody');
+      tbody.innerHTML = '';
+      let filtered = filterAndSortReports();
+      filtered.forEach(b => {
+        let row = `<tr>
+          <td>${b.adminName}</td>
+          <td>${b.roomNumber}</td>
+          <td>${b.date}</td>
+          <td>${b.checkIn}</td>
+          <td>${b.checkOut}</td>
+          <td>${b.price}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+
+      let total = filtered.reduce((sum, b) => sum + b.price, 0);
+      let expense = filtered.length * 25000;
+      let net = total - expense;
+      document.getElementById('totalIncome').innerText = `Total Pemasukan: Rp ${total}`;
+      document.getElementById('adminExpense').innerText = `Biaya Admin (Rp25.000 x ${filtered.length}): Rp ${expense}`;
+      document.getElementById('netIncome').innerText = `Pemasukan Bersih: Rp ${net}`;
+    }
+
+    function filterAndSortReports(){
+      let filtered = [...bookings];
+      const room = document.getElementById('filterRoomReport').value;
+      const date = document.getElementById('filterDateReport').value;
+      const sort = document.getElementById('sortByReport').value;
+
+      if(room) filtered = filtered.filter(b => b.roomNumber === room);
+      if(date) filtered = filtered.filter(b => b.date === date);
+
+      if(sort === 'date') filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
+      if(sort === 'price') filtered.sort((a,b) => a.price - b.price);
+      if(sort === 'admin') filtered.sort((a,b) => a.adminName.localeCompare(b.adminName));
+      if(sort === 'time') filtered.sort((a,b) => a.checkIn.localeCompare(b.checkIn));
+
+      return filtered;
+    }
+
+    function resetFilterReport(){
+      document.getElementById('filterRoomReport').value = '';
+      document.getElementById('filterDateReport').value = '';
+      document.getElementById('sortByReport').value = 'date';
+      renderReport();
+    }
+
+    function updateFilterOptions(){
+      let rooms = [...new Set(bookings.map(b => b.roomNumber))];
+      let roomSelect = document.getElementById('filterRoom');
+      let roomSelectReport = document.getElementById('filterRoomReport');
+      roomSelect.innerHTML = '<option value="">Semua</option>';
+      roomSelectReport.innerHTML = '<option value="">Semua</option>';
+      rooms.forEach(r => {
+        roomSelect.innerHTML += `<option value="${r}">${r}</option>`;
+        roomSelectReport.innerHTML += `<option value="${r}">${r}</option>`;
+      });
+    }
+
+    renderTable();
+    renderReport();
+    updateFilterOptions();
   </script>
 </body>
 </html>
