@@ -35,14 +35,14 @@
     <label>Nama Customer:</label>
     <input type="text" id="customerName">
 
+    <label>Tanggal Booking:</label>
+    <input type="date" id="bookingDate">
+
     <label>Jam Masuk:</label>
     <input type="time" id="checkIn">
 
     <label>Jam Keluar:</label>
     <input type="time" id="checkOut">
-
-    <label>Tanggal:</label>
-    <input type="date" id="bookingDate">
 
     <label>Nomor Kamar:</label>
     <input type="text" id="roomNumber">
@@ -80,13 +80,24 @@
 
   <div class="finance-section adminOnly hidden">
     <h2>Laporan Keuangan</h2>
-    <label>Filter:</label>
-    <select id="filterType" onchange="renderBookings()">
+    <label for="filter">Filter:</label>
+    <select id="filter" onchange="renderBookings()">
       <option value="all">Semua</option>
       <option value="day">Harian</option>
       <option value="week">Mingguan</option>
       <option value="month">Bulanan</option>
     </select>
+
+    <label for="sort">Urutkan berdasarkan:</label>
+    <select id="sort" onchange="renderBookings()">
+      <option value="dateDesc">Tanggal Terbaru</option>
+      <option value="dateAsc">Tanggal Terlama</option>
+      <option value="priceDesc">Harga Tertinggi</option>
+      <option value="priceAsc">Harga Terendah</option>
+      <option value="nameAsc">Nama A-Z</option>
+      <option value="nameDesc">Nama Z-A</option>
+    </select>
+
     <p>Total Pemasukan: Rp <span id="totalIncome">0</span></p>
   </div>
 
@@ -152,41 +163,50 @@
       let tbody = document.querySelector("#bookingTable tbody");
       tbody.innerHTML = "";
       let total = 0;
-      let filter = document.getElementById("filterType").value;
-      let today = new Date();
+      let filter = document.getElementById("filter")?.value || "all";
+      let sort = document.getElementById("sort")?.value || "dateDesc";
 
-      bookings.forEach((b, i) => {
+      let filteredBookings = bookings.filter(b => {
+        if (!b.date) return true;
+        let today = new Date();
         let bookingDate = new Date(b.date);
-        let include = true;
-
         if (filter === "day") {
-          include = bookingDate.toDateString() === today.toDateString();
+          return bookingDate.toDateString() === today.toDateString();
         } else if (filter === "week") {
-          let weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - today.getDay());
-          let weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 6);
-          include = bookingDate >= weekStart && bookingDate <= weekEnd;
+          let weekAgo = new Date();
+          weekAgo.setDate(today.getDate() - 7);
+          return bookingDate >= weekAgo && bookingDate <= today;
         } else if (filter === "month") {
-          include = bookingDate.getMonth() === today.getMonth() && bookingDate.getFullYear() === today.getFullYear();
+          return bookingDate.getMonth() === today.getMonth() && bookingDate.getFullYear() === today.getFullYear();
         }
+        return true;
+      });
 
-        if (include) {
-          let row = `<tr>
-            <td>${b.name}</td>
-            <td>${b.date}</td>
-            <td>${b.checkIn}</td>
-            <td>${b.checkOut}</td>
-            <td>${b.room}</td>
-            <td>${b.status}</td>
-            <td>Rp ${b.price}</td>`;
-          if (role === "admin") {
-            row += `<td><button onclick="deleteBooking(${i})">Hapus</button></td>`;
-          }
-          row += `</tr>`;
-          tbody.innerHTML += row;
-          total += b.price;
+      filteredBookings.sort((a, b) => {
+        if (sort === "dateDesc") return new Date(b.date) - new Date(a.date);
+        if (sort === "dateAsc") return new Date(a.date) - new Date(b.date);
+        if (sort === "priceDesc") return b.price - a.price;
+        if (sort === "priceAsc") return a.price - b.price;
+        if (sort === "nameAsc") return a.name.localeCompare(b.name);
+        if (sort === "nameDesc") return b.name.localeCompare(a.name);
+        return 0;
+      });
+
+      filteredBookings.forEach((b, i) => {
+        let row = `<tr>
+          <td>${b.name}</td>
+          <td>${b.date || '-'}</td>
+          <td>${b.checkIn}</td>
+          <td>${b.checkOut}</td>
+          <td>${b.room}</td>
+          <td>${b.status}</td>
+          <td>Rp ${b.price}</td>`;
+        if (role === "admin") {
+          row += `<td><button onclick="deleteBooking(${i})">Hapus</button></td>`;
         }
+        row += `</tr>`;
+        tbody.innerHTML += row;
+        total += b.price;
       });
 
       document.getElementById("totalIncome").innerText = total;
