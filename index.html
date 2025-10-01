@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Jadwal Ruang Singgah</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 25px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    input, select, textarea, button {
+      padding: 8px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #3498db;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .filters select, .filters input {
+      flex: 1;
+    }
+    .filters button {
+      flex: 0.5;
+      background: #e74c3c;
+    }
+    .filters button:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jadwal Ruang Singgah</h1>
+
+  <!-- Form input -->
+  <div class="card">
+    <h3 id="formTitle">Tambah Booking</h3>
+    <form id="bookingForm">
+      <input id="customer" placeholder="Nama Customer" required />
+      <input id="noKamar" placeholder="Nomor Kamar" required />
+      <label>Tanggal:</label>
+      <input id="tanggal" type="date" required />
+      <label>Jam Masuk:</label>
+      <input id="jamMasuk" type="time" required />
+      <label>Jam Keluar:</label>
+      <input id="jamKeluar" type="time" required />
+      <label>Status:</label>
+      <select id="status">
+        <option value="booked">Booked</option>
+        <option value="selesai">Selesai</option>
+        <option value="batal">Batal</option>
+      </select>
+      <label>Harga (Rp):</label>
+      <input id="harga" type="number" placeholder="Masukkan harga sewa" required />
+      <textarea id="catatan" placeholder="Catatan tambahan..."></textarea>
+      <button type="submit">Simpan</button>
+      <button type="button" id="cancelEdit" style="display:none;background:#e67e22;">Batal Edit</button>
+    </form>
+  </div>
+
+  <!-- Filter & Sorting -->
+  <div class="card">
+    <h3>Filter & Urutan</h3>
+    <div class="filters">
+      <select id="filterKamar">
+        <option value="">Semua Kamar</option>
+      </select>
+      <input id="filterTanggal" type="date" />
+      <select id="sortBy">
+        <option value="tanggalAsc">Tanggal ?</option>
+        <option value="tanggalDesc">Tanggal ?</option>
+        <option value="jamAsc">Jam Masuk ?</option>
+        <option value="jamDesc">Jam Masuk ?</option>
+      </select>
+      <button id="resetFilters">Reset</button>
+    </div>
+  </div>
+
+  <!-- Tabel data -->
+  <div class="card">
+    <h3>Daftar Booking</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Kamar</th>
+          <th>Tanggal</th>
+          <th>Jam Masuk</th>
+          <th>Jam Keluar</th>
+          <th>Status</th>
+          <th>Harga</th>
+          <th>Catatan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <!-- Laporan Keuangan -->
+  <div class="card">
+    <h3>Laporan Keuangan</h3>
+    <label>Pilih Periode:</label>
+    <select id="periodeLaporan">
+      <option value="harian">Harian</option>
+      <option value="mingguan">Mingguan</option>
+      <option value="bulanan">Bulanan</option>
+    </select>
+    <div id="laporanContent"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, updateDoc } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDckypoKOQP4_kOg9hf9_Mb8I3DBE4z3yo",
+      authDomain: "ruang-singgah.firebaseapp.com",
+      projectId: "ruang-singgah",
+      storageBucket: "ruang-singgah.firebasestorage.app",
+      messagingSenderId: "588996670567",
+      appId: "1:588996670567:web:5968e4cba91159d4e550c2",
+      measurementId: "G-JHV106ZXX6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const bookingsCol = collection(db, "bookings");
+
+    const form = document.getElementById("bookingForm");
+    const tbody = document.getElementById("list");
+    const filterKamar = document.getElementById("filterKamar");
+    const filterTanggal = document.getElementById("filterTanggal");
+    const sortBy = document.getElementById("sortBy");
+    const resetBtn = document.getElementById("resetFilters");
+    const formTitle = document.getElementById("formTitle");
+    const cancelEdit = document.getElementById("cancelEdit");
+    const periodeLaporan = document.getElementById("periodeLaporan");
+
+    let allBookings = [];
+    let editingId = null;
+
+    // Format tanggal dd/mm/yyyy
+    function formatDate(isoDate) {
+      const d = new Date(isoDate);
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Tambah / Update booking
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        customer: document.getElementById("customer").value,
+        noKamar: document.getElementById("noKamar").value,
+        tanggal: document.getElementById("tanggal").value,
+        jamMasuk: document.getElementById("jamMasuk").value,
+        jamKeluar: document.getElementById("jamKeluar").value,
+        status: document.getElementById("status").value,
+        harga: Number(document.getElementById("harga").value),
+        catatan: document.getElementById("catatan").value,
+        createdAt: Date.now()
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, "bookings", editingId), data);
+        editingId = null;
+        formTitle.textContent = "Tambah Booking";
+        cancelEdit.style.display = "none";
+      } else {
+        await addDoc(bookingsCol, data);
+      }
+
+      form.reset();
+    });
+
+    // Batal edit
+    cancelEdit.addEventListener("click", () => {
+      editingId = null;
+      form.reset();
+      formTitle.textContent = "Tambah Booking";
+      cancelEdit.style.display = "none";
+    });
+
+    // Ambil data realtime
+    const q = query(bookingsCol, orderBy("tanggal", "asc"));
+    onSnapshot(q, (snapshot) => {
+      allBookings = [];
+      snapshot.forEach((docSnap) => {
+        allBookings.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      updateFilters();
+      renderTable();
+      generateLaporan();
+    });
+
+    // Update filter kamar
+    function updateFilters() {
+      const uniqueKamar = [...new Set(allBookings.map(b => b.noKamar))];
+      filterKamar.innerHTML = '<option value="">Semua Kamar</option>';
+      uniqueKamar.forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = "Kamar " + k;
+        filterKamar.appendChild(opt);
+      });
+    }
+
+    // Render tabel
+    function renderTable() {
+      let filtered = allBookings;
+
+      if (filterKamar.value) {
+        filtered = filtered.filter(b => b.noKamar === filterKamar.value);
+      }
+      if (filterTanggal.value) {
+        filtered = filtered.filter(b => b.tanggal === filterTanggal.value);
+      }
+
+      // Sorting
+      filtered.sort((a, b) => {
+        if (sortBy.value === "tanggalAsc") return a.tanggal.localeCompare(b.tanggal);
+        if (sortBy.value === "tanggalDesc") return b.tanggal.localeCompare(a.tanggal);
+        if (sortBy.value === "jamAsc") return a.jamMasuk.localeCompare(b.jamMasuk);
+        if (sortBy.value === "jamDesc") return b.jamMasuk.localeCompare(a.jamMasuk);
+      });
+
+      tbody.innerHTML = "";
+      filtered.forEach((b) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${b.customer}</td>
+          <td>${b.noKamar}</td>
+          <td>${formatDate(b.tanggal)}</td>
+          <td>${b.jamMasuk}</td>
+          <td>${b.jamKeluar}</td>
+          <td>${b.status}</td>
+          <td>Rp ${b.harga?.toLocaleString() || 0}</td>
+          <td>${b.catatan || ""}</td>
+          <td>
+            <button data-id="${b.id}" class="editBtn">Edit</button>
+            <button data-id="${b.id}" class="delBtn" style="background:#e74c3c;">Hapus</button>
+          </td>
+        `;
+        tr.querySelector(".delBtn").addEventListener("click", async () => {
+          await deleteDoc(doc(db, "bookings", b.id));
+        });
+        tr.querySelector(".editBtn").addEventListener("click", () => {
+          editingId = b.id;
+          formTitle.textContent = "Edit Booking";
+          cancelEdit.style.display = "inline-block";
+
+          document.getElementById("customer").value = b.customer;
+          document.getElementById("noKamar").value = b.noKamar;
+          document.getElementById("tanggal").value = b.tanggal;
+          document.getElementById("jamMasuk").value = b.jamMasuk;
+          document.getElementById("jamKeluar").value = b.jamKeluar;
+          document.getElementById("status").value = b.status;
+          document.getElementById("harga").value = b.harga || 0;
+          document.getElementById("catatan").value = b.catatan;
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Generate laporan
+    function generateLaporan() {
+      const periode = periodeLaporan.value;
+      let laporan = {};
+      
+      allBookings.forEach(b => {
+        if (!b.harga) return;
+        const date = new Date(b.tanggal);
+        let key;
+        if (periode === "harian") {
+          key = formatDate(b.tanggal);
+        } else if (periode === "mingguan") {
+          const week = Math.ceil(date.getDate() / 7);
+          key = `Minggu ${week} - ${date.getMonth()+1}/${date.getFullYear()}`;
+        } else {
+          key = `${date.getMonth()+1}/${date.getFullYear()}`;
+        }
+        if (!laporan[key]) laporan[key] = 0;
+        laporan[key] += b.harga;
+      });
+
+      let html = "<table><tr><th>Periode</th><th>Total Pemasukan</th></tr>";
+      Object.keys(laporan).forEach(k => {
+        html += `<tr><td>${k}</td><td>Rp ${laporan[k].toLocaleString()}</td></tr>`;
+      });
+      html += "</table>";
+
+      document.getElementById("laporanContent").innerHTML = html;
+    }
+
+    periodeLaporan.addEventListener("change", generateLaporan);
+    filterKamar.addEventListener("change", renderTable);
+    filterTanggal.addEventListener("change", renderTable);
+    sortBy.addEventListener("change", renderTable);
+
+    // Reset filter
+    resetBtn.addEventListener("click", () => {
+      filterKamar.value = "";
+      filterTanggal.value = "";
+      sortBy.value = "tanggalAsc";
+      renderTable();
+    });
+  </script>
+</body>
+</html>
