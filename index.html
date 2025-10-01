@@ -2,359 +2,197 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Jadwal Ruang Singgah</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang Singgah - Manajemen Kost</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2.2em;
-      font-weight: bold;
-      color: #2c3e50;
-      margin-bottom: 25px;
-    }
-    .card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    input, select, textarea, button {
-      padding: 8px;
-      margin: 6px 0;
-      width: 100%;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      background: #3498db;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #2980b9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: #3498db;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .filters select, .filters input {
-      flex: 1;
-    }
-    .filters button {
-      flex: 0.5;
-      background: #e74c3c;
-    }
-    .filters button:hover {
-      background: #c0392b;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
+    h1 { text-align: center; }
+    .form-section, .list-section, .finance-section { background: white; padding: 15px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+    button { margin-top: 10px; padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: white; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>Jadwal Ruang Singgah</h1>
+  <h1>?? Ruang Singgah</h1>
 
-  <!-- Form input -->
-  <div class="card">
-    <h3 id="formTitle">Tambah Booking</h3>
-    <form id="bookingForm">
-      <input id="customer" placeholder="Nama Customer" required />
-      <input id="noKamar" placeholder="Nomor Kamar" required />
-      <label>Tanggal:</label>
-      <input id="tanggal" type="date" required />
-      <label>Jam Masuk:</label>
-      <input id="jamMasuk" type="time" required />
-      <label>Jam Keluar:</label>
-      <input id="jamKeluar" type="time" required />
-      <label>Status:</label>
-      <select id="status">
-        <option value="booked">Booked</option>
-        <option value="selesai">Selesai</option>
-        <option value="batal">Batal</option>
-      </select>
-      <label>Harga (Rp):</label>
-      <input id="harga" type="number" placeholder="Masukkan harga sewa" required />
-      <textarea id="catatan" placeholder="Catatan tambahan..."></textarea>
-      <button type="submit">Simpan</button>
-      <button type="button" id="cancelEdit" style="display:none;background:#e67e22;">Batal Edit</button>
-    </form>
+  <div class="form-section">
+    <label for="role">Login sebagai:</label>
+    <select id="role">
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
+    </select>
+    <p id="roleInfo">Mode: User</p>
   </div>
 
-  <!-- Filter & Sorting -->
-  <div class="card">
-    <h3>Filter & Urutan</h3>
-    <div class="filters">
-      <select id="filterKamar">
-        <option value="">Semua Kamar</option>
-      </select>
-      <input id="filterTanggal" type="date" />
-      <select id="sortBy">
-        <option value="tanggalAsc">Tanggal ?</option>
-        <option value="tanggalDesc">Tanggal ?</option>
-        <option value="jamAsc">Jam Masuk ?</option>
-        <option value="jamDesc">Jam Masuk ?</option>
-      </select>
-      <button id="resetFilters">Reset</button>
-    </div>
+  <div class="form-section">
+    <h2>Tambah Booking</h2>
+    <label>Nama Customer:</label>
+    <input type="text" id="customerName">
+
+    <label>Jam Masuk:</label>
+    <input type="time" id="checkIn">
+
+    <label>Jam Keluar:</label>
+    <input type="time" id="checkOut">
+
+    <label>Tanggal:</label>
+    <input type="date" id="bookingDate">
+
+    <label>Nomor Kamar:</label>
+    <input type="text" id="roomNumber">
+
+    <label>Status:</label>
+    <select id="status">
+      <option value="booked">Booked</option>
+      <option value="selesai">Selesai</option>
+    </select>
+
+    <label>Harga:</label>
+    <input type="number" id="price">
+
+    <button onclick="addBooking()">Tambah Booking</button>
   </div>
 
-  <!-- Tabel data -->
-  <div class="card">
-    <h3>Daftar Booking</h3>
-    <table>
+  <div class="list-section">
+    <h2>Daftar Booking</h2>
+    <table id="bookingTable">
       <thead>
         <tr>
-          <th>Customer</th>
-          <th>Kamar</th>
+          <th>Nama</th>
           <th>Tanggal</th>
           <th>Jam Masuk</th>
           <th>Jam Keluar</th>
+          <th>Kamar</th>
           <th>Status</th>
           <th>Harga</th>
-          <th>Catatan</th>
-          <th>Aksi</th>
+          <th class="adminOnly hidden">Aksi</th>
         </tr>
       </thead>
-      <tbody id="list"></tbody>
+      <tbody></tbody>
     </table>
   </div>
 
-  <!-- Laporan Keuangan -->
-  <div class="card">
-    <h3>Laporan Keuangan</h3>
-    <label>Pilih Periode:</label>
-    <select id="periodeLaporan">
-      <option value="harian">Harian</option>
-      <option value="mingguan">Mingguan</option>
-      <option value="bulanan">Bulanan</option>
+  <div class="finance-section adminOnly hidden">
+    <h2>Laporan Keuangan</h2>
+    <label>Filter:</label>
+    <select id="filterType" onchange="renderBookings()">
+      <option value="all">Semua</option>
+      <option value="day">Harian</option>
+      <option value="week">Mingguan</option>
+      <option value="month">Bulanan</option>
     </select>
-    <div id="laporanContent"></div>
+    <p>Total Pemasukan: Rp <span id="totalIncome">0</span></p>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, updateDoc } 
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <script>
+    let role = localStorage.getItem("role") || "user";
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDckypoKOQP4_kOg9hf9_Mb8I3DBE4z3yo",
-      authDomain: "ruang-singgah.firebaseapp.com",
-      projectId: "ruang-singgah",
-      storageBucket: "ruang-singgah.firebasestorage.app",
-      messagingSenderId: "588996670567",
-      appId: "1:588996670567:web:5968e4cba91159d4e550c2",
-      measurementId: "G-JHV106ZXX6"
-    };
+    document.getElementById("role").value = role;
+    document.getElementById("roleInfo").innerText = "Mode: " + role.charAt(0).toUpperCase() + role.slice(1);
+    updateRoleView();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const bookingsCol = collection(db, "bookings");
-
-    const form = document.getElementById("bookingForm");
-    const tbody = document.getElementById("list");
-    const filterKamar = document.getElementById("filterKamar");
-    const filterTanggal = document.getElementById("filterTanggal");
-    const sortBy = document.getElementById("sortBy");
-    const resetBtn = document.getElementById("resetFilters");
-    const formTitle = document.getElementById("formTitle");
-    const cancelEdit = document.getElementById("cancelEdit");
-    const periodeLaporan = document.getElementById("periodeLaporan");
-
-    let allBookings = [];
-    let editingId = null;
-
-    // Format tanggal dd/mm/yyyy
-    function formatDate(isoDate) {
-      const d = new Date(isoDate);
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-
-    // Tambah / Update booking
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = {
-        customer: document.getElementById("customer").value,
-        noKamar: document.getElementById("noKamar").value,
-        tanggal: document.getElementById("tanggal").value,
-        jamMasuk: document.getElementById("jamMasuk").value,
-        jamKeluar: document.getElementById("jamKeluar").value,
-        status: document.getElementById("status").value,
-        harga: Number(document.getElementById("harga").value),
-        catatan: document.getElementById("catatan").value,
-        createdAt: Date.now()
-      };
-
-      if (editingId) {
-        await updateDoc(doc(db, "bookings", editingId), data);
-        editingId = null;
-        formTitle.textContent = "Tambah Booking";
-        cancelEdit.style.display = "none";
-      } else {
-        await addDoc(bookingsCol, data);
-      }
-
-      form.reset();
-    });
-
-    // Batal edit
-    cancelEdit.addEventListener("click", () => {
-      editingId = null;
-      form.reset();
-      formTitle.textContent = "Tambah Booking";
-      cancelEdit.style.display = "none";
-    });
-
-    // Ambil data realtime
-    const q = query(bookingsCol, orderBy("tanggal", "asc"));
-    onSnapshot(q, (snapshot) => {
-      allBookings = [];
-      snapshot.forEach((docSnap) => {
-        allBookings.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      updateFilters();
-      renderTable();
-      generateLaporan();
-    });
-
-    // Update filter kamar
-    function updateFilters() {
-      const uniqueKamar = [...new Set(allBookings.map(b => b.noKamar))];
-      filterKamar.innerHTML = '<option value="">Semua Kamar</option>';
-      uniqueKamar.forEach(k => {
-        const opt = document.createElement("option");
-        opt.value = k;
-        opt.textContent = "Kamar " + k;
-        filterKamar.appendChild(opt);
-      });
-    }
-
-    // Render tabel
-    function renderTable() {
-      let filtered = allBookings;
-
-      if (filterKamar.value) {
-        filtered = filtered.filter(b => b.noKamar === filterKamar.value);
-      }
-      if (filterTanggal.value) {
-        filtered = filtered.filter(b => b.tanggal === filterTanggal.value);
-      }
-
-      // Sorting
-      filtered.sort((a, b) => {
-        if (sortBy.value === "tanggalAsc") return a.tanggal.localeCompare(b.tanggal);
-        if (sortBy.value === "tanggalDesc") return b.tanggal.localeCompare(a.tanggal);
-        if (sortBy.value === "jamAsc") return a.jamMasuk.localeCompare(b.jamMasuk);
-        if (sortBy.value === "jamDesc") return b.jamMasuk.localeCompare(a.jamMasuk);
-      });
-
-      tbody.innerHTML = "";
-      filtered.forEach((b) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${b.customer}</td>
-          <td>${b.noKamar}</td>
-          <td>${formatDate(b.tanggal)}</td>
-          <td>${b.jamMasuk}</td>
-          <td>${b.jamKeluar}</td>
-          <td>${b.status}</td>
-          <td>Rp ${b.harga?.toLocaleString() || 0}</td>
-          <td>${b.catatan || ""}</td>
-          <td>
-            <button data-id="${b.id}" class="editBtn">Edit</button>
-            <button data-id="${b.id}" class="delBtn" style="background:#e74c3c;">Hapus</button>
-          </td>
-        `;
-        tr.querySelector(".delBtn").addEventListener("click", async () => {
-          await deleteDoc(doc(db, "bookings", b.id));
-        });
-        tr.querySelector(".editBtn").addEventListener("click", () => {
-          editingId = b.id;
-          formTitle.textContent = "Edit Booking";
-          cancelEdit.style.display = "inline-block";
-
-          document.getElementById("customer").value = b.customer;
-          document.getElementById("noKamar").value = b.noKamar;
-          document.getElementById("tanggal").value = b.tanggal;
-          document.getElementById("jamMasuk").value = b.jamMasuk;
-          document.getElementById("jamKeluar").value = b.jamKeluar;
-          document.getElementById("status").value = b.status;
-          document.getElementById("harga").value = b.harga || 0;
-          document.getElementById("catatan").value = b.catatan;
-        });
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Generate laporan
-    function generateLaporan() {
-      const periode = periodeLaporan.value;
-      let laporan = {};
-      
-      allBookings.forEach(b => {
-        if (!b.harga) return;
-        const date = new Date(b.tanggal);
-        let key;
-        if (periode === "harian") {
-          key = formatDate(b.tanggal);
-        } else if (periode === "mingguan") {
-          const week = Math.ceil(date.getDate() / 7);
-          key = `Minggu ${week} - ${date.getMonth()+1}/${date.getFullYear()}`;
+    document.getElementById("role").addEventListener("change", function() {
+      if (this.value === "admin") {
+        let pass = prompt("Masukkan password admin:");
+        if (pass === "kucingoren") {
+          role = "admin";
+          localStorage.setItem("role", "admin");
         } else {
-          key = `${date.getMonth()+1}/${date.getFullYear()}`;
+          alert("Password salah! Tetap di mode User.");
+          this.value = "user";
+          role = "user";
+          localStorage.setItem("role", "user");
         }
-        if (!laporan[key]) laporan[key] = 0;
-        laporan[key] += b.harga;
-      });
+      } else {
+        role = "user";
+        localStorage.setItem("role", "user");
+      }
+      document.getElementById("roleInfo").innerText = "Mode: " + role.charAt(0).toUpperCase() + role.slice(1);
+      updateRoleView();
+      renderBookings();
+    });
 
-      let html = "<table><tr><th>Periode</th><th>Total Pemasukan</th></tr>";
-      Object.keys(laporan).forEach(k => {
-        html += `<tr><td>${k}</td><td>Rp ${laporan[k].toLocaleString()}</td></tr>`;
+    function updateRoleView() {
+      let adminElements = document.querySelectorAll(".adminOnly");
+      adminElements.forEach(el => {
+        if (role === "admin") el.classList.remove("hidden");
+        else el.classList.add("hidden");
       });
-      html += "</table>";
-
-      document.getElementById("laporanContent").innerHTML = html;
     }
 
-    periodeLaporan.addEventListener("change", generateLaporan);
-    filterKamar.addEventListener("change", renderTable);
-    filterTanggal.addEventListener("change", renderTable);
-    sortBy.addEventListener("change", renderTable);
+    function addBooking() {
+      let booking = {
+        name: document.getElementById("customerName").value,
+        date: document.getElementById("bookingDate").value,
+        checkIn: document.getElementById("checkIn").value,
+        checkOut: document.getElementById("checkOut").value,
+        room: document.getElementById("roomNumber").value,
+        status: document.getElementById("status").value,
+        price: parseInt(document.getElementById("price").value) || 0
+      };
+      bookings.push(booking);
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      renderBookings();
+    }
 
-    // Reset filter
-    resetBtn.addEventListener("click", () => {
-      filterKamar.value = "";
-      filterTanggal.value = "";
-      sortBy.value = "tanggalAsc";
-      renderTable();
-    });
+    function deleteBooking(index) {
+      bookings.splice(index, 1);
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      renderBookings();
+    }
+
+    function renderBookings() {
+      let tbody = document.querySelector("#bookingTable tbody");
+      tbody.innerHTML = "";
+      let total = 0;
+      let filter = document.getElementById("filterType").value;
+      let today = new Date();
+
+      bookings.forEach((b, i) => {
+        let bookingDate = new Date(b.date);
+        let include = true;
+
+        if (filter === "day") {
+          include = bookingDate.toDateString() === today.toDateString();
+        } else if (filter === "week") {
+          let weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          let weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          include = bookingDate >= weekStart && bookingDate <= weekEnd;
+        } else if (filter === "month") {
+          include = bookingDate.getMonth() === today.getMonth() && bookingDate.getFullYear() === today.getFullYear();
+        }
+
+        if (include) {
+          let row = `<tr>
+            <td>${b.name}</td>
+            <td>${b.date}</td>
+            <td>${b.checkIn}</td>
+            <td>${b.checkOut}</td>
+            <td>${b.room}</td>
+            <td>${b.status}</td>
+            <td>Rp ${b.price}</td>`;
+          if (role === "admin") {
+            row += `<td><button onclick="deleteBooking(${i})">Hapus</button></td>`;
+          }
+          row += `</tr>`;
+          tbody.innerHTML += row;
+          total += b.price;
+        }
+      });
+
+      document.getElementById("totalIncome").innerText = total;
+    }
+
+    renderBookings();
   </script>
 </body>
 </html>
